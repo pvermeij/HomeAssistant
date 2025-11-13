@@ -10,6 +10,8 @@ Collection of blueprints for use in Home Assistant
 
 Control lights with an [InstaRemote Switch](https://www.zigbee2mqtt.io/devices/InstaRemote.html) from the Zigbee2MQTT integration.
 
+[!CAUTION]
+** NOT TESTED YET **
 
 
 
