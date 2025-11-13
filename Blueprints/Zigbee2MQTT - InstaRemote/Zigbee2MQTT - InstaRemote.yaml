@@ -1,0 +1,236 @@
+blueprint:
+  name: Zigbee2MQTT - InstaRemote
+  description: |
+    # Zigbee2MQTT - InstaRemote
+    
+    ℹ️ Version 2025.11.12
+
+    Control lights with an InstaRemote Switch from the Zigbee2MQTT integration.
+
+    Buttons On/Dim Up, Off/Dim Down are assigned to their respective actions
+    Buttons 1 to 6 can be assigned to any action of your choice.
+
+  domain: automation
+  author: P. Vermeij
+
+  input:
+    remote:
+      name: Remote
+      description: InstaRemote Switch to use
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Insta
+          model: InstaRemote
+    light:
+      name: Light(s)
+      description: The light(s) to control
+      selector:
+        target:
+          entity:
+            domain: light
+    force_brightness:
+      name: Force turn on brightness
+      description: 'Force the brightness to the set level below, when the "on" button
+        on the remote is pushed and lights turn on.'
+      default: false
+      selector:
+        boolean: {}
+    brightness:
+      name: Brightness
+      description: Forced brightness of the light(s) when turning on
+      default: 50
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          mode: slider
+          step: 1.0
+          unit_of_measurement: '%'
+    button_1:
+      name: Button 1
+      description: Action to run on Button 1
+      default: []
+      selector:
+        action:
+    button_2:
+      name: Button 2
+      description: Action to run on Button 2
+      default: []
+      selector:
+        action:
+    button_3:
+      name: Button 3
+      description: Action to run on Button 3
+      default: []
+      selector:
+        action:
+    button_4:
+      name: Button 4
+      description: Action to run on Button 4
+      default: []
+      selector:
+        action:
+    button_5:
+      name: Button 5
+      description: Action to run on Button 5
+      default: []
+      selector:
+        action:
+    button_6:
+      name: Button 6
+      description: Action to run on Button 6
+      default: []
+      selector:
+        action:
+
+mode: single
+max_exceeded: silent
+
+variables:
+  force_brightness: !input 'force_brightness'
+
+triggers:
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "on"
+    id: light_on
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "off"
+    id: light_off
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "down"
+    id: dim_down
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "up"
+    id: dim_up
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "stop"
+    id: dim_stop
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "select_0"
+    id: select_0
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "select_1"
+    id: select_1
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "select_2"
+    id: select_2
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "select_3"
+    id: select_3
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "select_4"
+    id: select_4
+  - trigger: device
+    domain: mqtt
+    device_id: !input remote
+    type: action
+    subtype: "select_5"
+    id: select_5
+
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id: light_on
+    sequence:
+    - choose:
+      - conditions: '{{ force_brightness }}'
+        sequence:
+        - service: light.turn_on
+          target: !input 'light'
+          data:
+            transition: 1
+            brightness_pct: !input 'brightness'
+      default:
+      - service: light.turn_on
+        target: !input 'light'
+        data:
+          transition: 1
+    - delay:
+        milliseconds: 100
+
+  - conditions:
+    - condition: trigger
+      id: light_off
+    sequence:
+    - service: light.turn_off
+      target: !input 'light'
+
+  - conditions:
+    - condition: trigger
+      id: dim_up
+    sequence:
+    - service: light.turn_on
+      target: !input 'light'
+      data:
+        brightness_step_pct: 5
+
+  - conditions:
+    - condition: trigger
+      id: dim_down
+    sequence:
+    - service: light.turn_on
+      target: !input 'light'
+      data:
+        brightness_step_pct: -5
+
+  - conditions:
+    - condition: trigger
+      id: select_0
+    sequence: !input button_1
+
+  - conditions:
+    - condition: trigger
+      id: select_1
+    sequence: !input button_2
+
+  - conditions:
+    - condition: trigger
+      id: select_2
+    sequence: !input button_3
+
+  - conditions:
+    - condition: trigger
+      id: select_3
+    sequence: !input button_4
+
+  - conditions:
+    - condition: trigger
+      id: select_4
+    sequence: !input button_5
+
+  - conditions:
+    - condition: trigger
+      id: select_5
+    sequence: !input button_6
