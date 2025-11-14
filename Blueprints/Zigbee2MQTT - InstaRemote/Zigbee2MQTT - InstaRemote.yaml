@@ -3,7 +3,7 @@ blueprint:
   description: |
     # Zigbee2MQTT - InstaRemote
     
-    ℹ️ Version 2025.11.12
+    ℹ️ Version 2025.11.14
     
     [!CAUTION]
     ** NOT TESTED YET **
@@ -110,55 +110,55 @@ triggers:
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "down"
+    subtype: "brightness_step_down"
     id: dim_down
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "up"
+    subtype: "brightness_step_up"
     id: dim_up
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "stop"
+    subtype: "brightness_stop"
     id: dim_stop
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "select_0"
+    subtype: "recall_0"
     id: select_0
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "select_1"
+    subtype: "recall_1"
     id: select_1
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "select_2"
+    subtype: "recall_2"
     id: select_2
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "select_3"
+    subtype: "recall_3"
     id: select_3
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "select_4"
+    subtype: "recall_4"
     id: select_4
   - trigger: device
     domain: mqtt
     device_id: !input remote
     type: action
-    subtype: "select_5"
+    subtype: "recall_5"
     id: select_5
 
 action:
