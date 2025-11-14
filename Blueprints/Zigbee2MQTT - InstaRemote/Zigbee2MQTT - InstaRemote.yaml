@@ -24,7 +24,7 @@ blueprint:
         device:
           integration: mqtt
           manufacturer: Insta
-          model: InstaRemote
+          model: Zigbee Light Link wall/handheld transmitter (InstaRemote)
     light:
       name: Light(s)
       description: The light(s) to control
@@ -237,3 +237,4 @@ action:
     - condition: trigger
       id: select_5
     sequence: !input button_6
+
