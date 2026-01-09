@@ -1,0 +1,197 @@
+blueprint:
+  name: Frontdoor Automation
+
+  description: |
+    # Frontdoor Automation (Person detected / No Person detected / Doorbel pressed)
+
+    Automation with 3 scenario's
+    1) The door opens and a person is detected near the door → turn on light hall
+    2) The door opens without a person detected → turn on light frontyard (after sunset), after Y seconds turn lights hall and frontyard off
+    3) The door opens shortly after the doorbell was pressed → turn on light hall, turn on light voortuin aan (na zonsondergang), after closing door and Z seconds turn lights frontyard off
+    
+    ℹ️ Version 2025.11.14
+    
+    [!CAUTION]
+    ** NOT TESTED YET **
+
+  domain: automation
+  author: P. Vermeij
+
+  input:
+    voordeur_sensor:
+      name: Voordeur sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    deurbel_sensor:
+      name: Deurbel bezoeker sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    persoon_sensor:
+      name: Persoon detectie sensor
+      selector:
+        entity:
+          domain: binary_sensor
+
+    licht_hal:
+      name: Licht hal begane grond
+      selector:
+        entity:
+          domain: light
+
+    licht_voortuin:
+      name: Licht voortuin
+      selector:
+        entity:
+          domain: light
+
+    persoon_window:
+      name: Tijdvenster persoon gedetecteerd (seconden)
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 600
+          unit_of_measurement: seconds
+          mode: slider
+
+    deurbel_not_window:
+      name: Tijdvenster deurbel NIET ingedrukt (seconden)
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 600
+          unit_of_measurement: seconds
+          mode: slider
+
+    deurbel_window:
+      name: Tijdvenster deurbel WEL ingedrukt (seconden)
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 600
+          unit_of_measurement: seconds
+          mode: slider
+
+    delay_window:
+      name: Wachtduur voor uitschakelen (seconden)
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 600
+          unit_of_measurement: seconds
+          mode: slider
+
+mode: restart
+
+trigger:
+  - platform: state
+    entity_id: !input voordeur_sensor
+    to: "on"
+    id: voordeur_open
+  - platform: state
+    entity_id: !input deurbel_sensor
+    to: "on"
+    id: deurbel_pressed
+
+condition: []
+
+action:
+  - choose:
+
+      #######################################################################
+      # OPTIE 1 — Persoon detected in last X seconds AND deurbel NOT pressed
+      #######################################################################
+      - conditions:
+          - condition: trigger
+            id: voordeur_open
+          - condition: template
+            value_template: >
+              {{ (now() - states[blueprint.inputs.persoon_sensor].last_changed).total_seconds()
+                 < (blueprint.inputs.persoon_window | int) }}
+          - condition: template
+            value_template: >
+              {{ (now() - states[blueprint.inputs.deurbel_sensor].last_changed).total_seconds()
+                 > (blueprint.inputs.deurbel_not_window | int) }}
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input licht_hal
+
+      #######################################################################
+      # OPTIE 2 — Voordeur open + GEEN persoon gedetecteerd
+      #######################################################################
+      - conditions:
+          - condition: trigger
+            id: voordeur_open
+          - condition: state
+            entity_id: !input persoon_sensor
+            state: "off"
+        sequence:
+          # Voortuin only ON after sunset
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: sun.sun
+                    state: "below_horizon"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      entity_id: !input licht_voortuin
+
+          - delay:
+              seconds: !input delay_window
+
+          - service: light.turn_off
+            target:
+              entity_id: !input licht_hal
+
+          - service: light.turn_off
+            target:
+              entity_id: !input licht_voortuin
+
+      #######################################################################
+      # OPTIE 3 — Deurbel pressed in last Z seconds before door opens
+      #######################################################################
+      - conditions:
+          - condition: trigger
+            id: voordeur_open
+          - condition: template
+            value_template: >
+              {{ (now() - states[blueprint.inputs.deurbel_sensor].last_changed).total_seconds()
+                 < (blueprint.inputs.deurbel_window | int) }}
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: !input licht_hal
+
+          # Voortuin only ON after sunset
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: sun.sun
+                    state: "below_horizon"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      entity_id: !input licht_voortuin
+
+          # Wait until door closes
+          - wait_for_trigger:
+              - platform: state
+                entity_id: !input voordeur_sensor
+                to: "off"
+            continue_on_timeout: false
+
+          - delay:
+              seconds: !input delay_window
+
+          - service: light.turn_off
+            target:
+              entity_id: !input licht_voortuin
