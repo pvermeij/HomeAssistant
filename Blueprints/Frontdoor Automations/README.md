@@ -1,4 +1,4 @@
-# 📘 Voordeur Automatisering — Home Assistant Blueprint  
+# 📘 Front-door Automation — Home Assistant Blueprint  
 
 ![Status](https://img.shields.io/badge/Status-Experimental-orange)
 ![Testing](https://img.shields.io/badge/Testing-NOT_TESTED_YET-red)
