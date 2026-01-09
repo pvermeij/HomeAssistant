@@ -1,8 +1,8 @@
 blueprint:
-  name: Frontdoor Automation
+  name: Front-door Automation
 
   description: |
-    # Frontdoor Automation (Person detected / No Person detected / Doorbel pressed)
+    # Front-door Automation (Person detected / No Person detected / Doorbel pressed)
 
     Automation with 3 scenario's
     1) The door opens and a person is detected near the door → turn on light hall
